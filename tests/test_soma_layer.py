@@ -130,3 +130,46 @@ def test_soma_layer_forward(data_root, identity_model_type, device, low_lod, app
         )
     assert joints.dim() == 3 and joints.shape[0] == batch_size and joints.shape[2] == 3
     assert joints.shape[1] == num_pose_joints
+
+
+# ---------------------------------------------------------------------------
+# Public API accessor tests
+# ---------------------------------------------------------------------------
+
+
+def test_joint_names(data_root):
+    """SOMALayer.joint_names returns a list of strings with correct length."""
+    from soma import SOMALayer
+
+    layer = SOMALayer(data_root=data_root, identity_model_type="soma", device="cpu")
+    names = layer.joint_names
+    assert isinstance(names, list)
+    assert len(names) == 78  # Root + 77 joints
+    assert all(isinstance(n, str) for n in names)
+    assert names[0] == "Root"
+    assert names[1] == "Hips"
+
+
+def test_get_tpose_rotations(data_root):
+    """SOMALayer.get_tpose_rotations() returns (78, 3, 3) rotation matrices."""
+    from soma import SOMALayer
+
+    layer = SOMALayer(data_root=data_root, identity_model_type="soma", device="cpu")
+    R = layer.get_tpose_rotations()
+    assert R.shape == (78, 3, 3)
+    # Verify they are valid rotation matrices (orthogonal, det=+1)
+    eye = torch.eye(3)
+    for j in range(R.shape[0]):
+        RtR = R[j].T @ R[j]
+        assert torch.allclose(RtR, eye, atol=1e-5), f"Joint {j}: R^T R != I"
+        det = torch.det(R[j])
+        assert torch.allclose(det, torch.tensor(1.0), atol=1e-5), f"Joint {j}: det={det:.4f}"
+
+
+def test_public_imports():
+    """Public API symbols are importable from the soma package."""
+    from soma import HIPS_IDX, PoseInversion, build_world_transforms
+
+    assert HIPS_IDX == 1
+    assert callable(build_world_transforms)
+    assert callable(PoseInversion)

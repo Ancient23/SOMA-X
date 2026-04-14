@@ -172,6 +172,8 @@ class TestInvert:
         assert result["rotations"].shape == (1, J, 3, 3)
         assert result["root_translation"].shape == (1, 3)
         assert result["per_vertex_error"].shape[0] == 1
+        assert "joint_positions" in result
+        assert result["joint_positions"].shape == (1, J, 3)
 
         mean_err = result["per_vertex_error"].mean().item()
         max_err = result["per_vertex_error"].max().item()
@@ -187,6 +189,7 @@ class TestInvert:
 
         J = result["rotations"].shape[1]
         assert result["rotations"].shape == (4, J, 3, 3)
+        assert result["joint_positions"].shape == (4, J, 3)
         assert result["per_vertex_error"].shape[0] == 4
 
         mean_err = result["per_vertex_error"].mean().item()
@@ -234,6 +237,7 @@ class TestInvert:
         result_chunked = inv.fit(verts, body_iters=5, finger_iters=2, batch_size=2)
 
         assert result_chunked["rotations"].shape == result_all["rotations"].shape
+        assert result_chunked["joint_positions"].shape == result_all["joint_positions"].shape
 
         # Analytical is deterministic, so results should be very close
         err_all = result_all["per_vertex_error"].mean().item()
@@ -276,6 +280,7 @@ class TestInvertAutogradFK:
         assert result["rotations"].shape == (1, J, 3, 3)
         assert result["root_translation"].shape == (1, 3)
         assert result["per_vertex_error"].shape[0] == 1
+        assert result["joint_positions"].shape == (1, J, 3)
 
         mean_err = result["per_vertex_error"].mean().item()
         assert mean_err < 0.01, f"Mean vertex error too high: {mean_err:.6f} m"
@@ -288,5 +293,6 @@ class TestInvertAutogradFK:
         result = inv.fit(verts, body_iters=0, full_iters=0, autograd_iters=20, autograd_lr=5e-3)
 
         assert result["rotations"].shape[0] == 4
+        assert result["joint_positions"].shape[0] == 4
         mean_err = result["per_vertex_error"].mean().item()
         assert mean_err < 0.01, f"Mean vertex error too high: {mean_err:.6f} m"
