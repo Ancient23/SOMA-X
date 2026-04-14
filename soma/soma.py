@@ -268,15 +268,15 @@ class SOMALayer(nn.Module):
         """Return T-pose rotation matrices for all joints.
 
         Returns:
-            (J, 3, 3) tensor — the upper-left 3×3 rotation block of
-            each joint's T-pose world transform.
+            (J, 3, 3) tensor — a cloned copy of the upper-left 3×3 rotation
+            block of each joint's T-pose world transform.
 
         Raises:
             RuntimeError: If T-pose world transforms are not available.
         """
         if self.t_pose_world is None:
             raise RuntimeError("T-pose world transforms not available.")
-        return self.t_pose_world[:, :3, :3]
+        return self.t_pose_world[:, :3, :3].clone()
 
     def prepare_identity(
         self,

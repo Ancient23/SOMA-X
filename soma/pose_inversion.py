@@ -354,8 +354,11 @@ def build_world_transforms(pose_local, cache):
     Public wrapper around the internal FK computation.
 
     Args:
-        pose_local: (B, J, 4, 4) local SE3 transforms.  Rotation in the
-            upper-left 3x3; hips translation in ``[:, HIPS_IDX, :3, 3]``.
+        pose_local: (B, J, 4, 4) local transforms.  Rotations are read from
+            the upper-left 3x3 for every joint.  Only the hips translation
+            in ``[:, HIPS_IDX, :3, 3]`` is used; translations for all other
+            joints are ignored and replaced with bind-pose local translations
+            from ``cache["bind_local_t"]``.
         cache: dict returned by ``PoseInversion._cache`` after
             ``prepare_identity()`` has been called.  Required keys:
             ``"bind_local_t"`` and ``"levels"``.
